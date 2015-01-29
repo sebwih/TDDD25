@@ -57,7 +57,7 @@ Choose one of the following commands:
     r            ::  read a random fortune from the database,
     w <FORTUNE>  ::  write a new fortune into the database,
     h            ::  print this menu,
-    q            ::  exit.\
+    q            ::  exit.
 """)
 
     command = ""
