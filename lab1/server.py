@@ -64,10 +64,10 @@ class Server(object):
     # Public methods
 
     def read(self):
-        #
-        # Your code here.
-        #
-        pass
+        self.rwlock.read_acquire()
+        response = self.db.read()
+        self.rwlock.read_release()
+        return response
 
     def write(self, fortune):
         #
@@ -114,10 +114,11 @@ class Request(threading.Thread):
                         }
                     }
         """
-        #
-        # Your code here.
-        #
-        pass
+        req = json.loads(request)
+        if(req['method']=='read'):
+            response = {"result":self.db_server.read()}
+
+            return json.dumps(response)
 
     def run(self):
         try:

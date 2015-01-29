@@ -35,7 +35,6 @@ class Database(object):
         """Read a random location in the database."""
         return self.db_array[self.rand.randint(0,len(self.db_array))]
         
-        
 
     def write(self, fortune):
         """Write a new fortune to the database."""
