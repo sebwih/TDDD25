@@ -18,7 +18,7 @@
 errfile="error$1.tmp"
 shift
 
-./$@ 2> $errfile
+$@ 2> $errfile
 
 if [[ -s $errfile ]] ; then
     cat $errfile

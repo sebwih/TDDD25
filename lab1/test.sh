@@ -18,8 +18,8 @@
 no_clients=${1:-3}
 term='xterm'
 wrap='../modules/Common/wrap.sh'
-server='./server.py'
-client='client.py -i '
+server='python3 server.py'
+client='python3 client.py -i '
 
 # Run the server.
 $term -T 'Server' -e $server &

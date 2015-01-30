@@ -80,10 +80,16 @@ class DatabaseProxy(object):
         
 
     def write(self, fortune):
-        #
-        # Your code here.
-        #
-        pass
+        request = json.dumps({'method':'write','args':[fortune]})
+        request += "\n"
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(server_address)
+        s.send(bytes(request, 'UTF-8'))
+        json_response = s.recv(1024).decode('UTF-8')
+        response = json.loads(json_response)
+        s.close()
+        return response['result']
+
 
 # -----------------------------------------------------------------------------
 # The main program
