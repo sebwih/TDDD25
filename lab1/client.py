@@ -76,7 +76,10 @@ class DatabaseProxy(object):
         json_response = s.recv(1024).decode('UTF-8')
         response = json.loads(json_response)
         s.close()
-        return response['result']
+        if("error" in response):
+            return response
+        else:
+            return response['result']
         
 
     def write(self, fortune):
@@ -88,7 +91,10 @@ class DatabaseProxy(object):
         json_response = s.recv(1024).decode('UTF-8')
         response = json.loads(json_response)
         s.close()
-        return response['result']
+        if("error" in response):
+            return response
+        else:
+            return response['result']
 
 
 # -----------------------------------------------------------------------------
