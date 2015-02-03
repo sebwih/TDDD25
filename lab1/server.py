@@ -118,7 +118,7 @@ class Request(threading.Thread):
             response = {"result":self.db_server.read()}
             return json.dumps(response)
         elif(req['method'] == 'write'):
-            if not req["args"]:
+            if not req["args"][0]:
                 return json.dumps({"error":{"name":"MissingArgumet","args":[]}})
             self.db_server.write(req['args'][0])
             response = {"result": None}
