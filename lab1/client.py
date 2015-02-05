@@ -15,6 +15,7 @@ import sys
 import socket
 import json
 import argparse
+import customExceptions
 
 # -----------------------------------------------------------------------------
 # Initialize and read the command line arguments
@@ -53,10 +54,6 @@ server_address = opts.address[0]
 # -----------------------------------------------------------------------------
 
 
-class ComunicationError(Exception):
-    pass
-
-
 class DatabaseProxy(object):
 
     """Class that simulates the behavior of the database class."""
@@ -83,19 +80,24 @@ class DatabaseProxy(object):
         
 
     def write(self, fortune):
-        request = json.dumps({'method':'write','args':[fortune]})
-        request += "\n"
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect(server_address)
-        s.send(bytes(request, 'UTF-8'))
-        json_response = s.recv(1024).decode('UTF-8')
-        response = json.loads(json_response)
-        s.close()
-        if("error" in response):
-            return response
-        else:
-            return response['result']
-
+        try:
+            request = json.dumps({'method':'write','args':[fortune]})
+            request += "\n"
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect(server_address)
+            s.send(bytes(request, 'UTF-8'))
+            json_response = s.recv(1024).decode('UTF-8')
+            response = json.loads(json_response)
+            s.close()
+            if("error" in response):
+                raise getattr(customExceptions,response["error"]["name"])
+            else:
+                return response['result']
+        except Exception as e:
+            print(e.__class__.__name__)
+            
+            
+            
 
 # -----------------------------------------------------------------------------
 # The main program
