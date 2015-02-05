@@ -53,7 +53,6 @@ server_address = opts.address[0]
 # Auxiliary classes
 # -----------------------------------------------------------------------------
 
-
 class DatabaseProxy(object):
 
     """Class that simulates the behavior of the database class."""
@@ -80,6 +79,7 @@ class DatabaseProxy(object):
         
 
     def write(self, fortune):
+
         try:
             request = json.dumps({'method':'write','args':[fortune]})
             request += "\n"
@@ -95,9 +95,7 @@ class DatabaseProxy(object):
                 return response['result']
         except Exception as e:
             print(e.__class__.__name__)
-            
-            
-            
+
 
 # -----------------------------------------------------------------------------
 # The main program
