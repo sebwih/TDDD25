@@ -62,39 +62,42 @@ class DatabaseProxy(object):
 
     # Public methods
 
-    def read(self):
-        request = json.dumps({'method':'read', 'args':[]})
-        request +="\n"
-        
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect(server_address)
-        s.send(bytes(request, 'UTF-8'))
-        json_response = s.recv(1024).decode('UTF-8')
-        response = json.loads(json_response)
-        s.close()
-        if("error" in response):
-            return response
-        else:
-            return response['result']
-        
-
-    def write(self, fortune):
-
+    def send(self, request):
         try:
-            request = json.dumps({'method':'write','args':[fortune]})
-            request += "\n"
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect(server_address)
             s.send(bytes(request, 'UTF-8'))
             json_response = s.recv(1024).decode('UTF-8')
             response = json.loads(json_response)
-            s.close()
-            if("error" in response):
-                raise getattr(customExceptions,response["error"]["name"])
-            else:
-                return response['result']
+            return response
+        
         except Exception as e:
             print(e.__class__.__name__)
+            return None
+
+        finally:
+            s.close()
+
+    def read(self):
+        request = json.dumps({'method':'read', 'args':[]})
+        request +="\n"
+        response = self.send(request)
+        if response is not None:
+            response = response['result']
+            return response
+
+    def write(self, fortune):
+        request = json.dumps({'method':'write','args':[fortune]})
+        request += "\n"
+        response = self.send(request)
+        
+        if("error" in response):
+            try:
+                raise getattr(customExceptions,response["error"]["name"])
+
+            except Exception as e:
+                print(e.__class__.__name__)
+            
 
 
 # -----------------------------------------------------------------------------
