@@ -46,10 +46,17 @@ class Stub(object):
         self.address = tuple(address)
 
     def _rmi(self, method, *args):
-        #
-        # Your code here.
-        #
-        pass
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        request = json.dumps({"method":method,"args":args})
+        request +="\n"
+        s.connect(self.address)
+        s.send(bytes(request, 'UTF-8'))
+        if(method != "unregister"):
+            json_response = s.recv(1024).decode('UTF-8')
+            response = json.loads(json_response)
+            s.close()
+            return response['result']  
+        s.close() 
 
     def __getattr__(self, attr):
         """Forward call to name over the network at the given address."""
@@ -70,11 +77,25 @@ class Request(threading.Thread):
         self.daemon = True
 
     def run(self):
-        #
-        # Your code here.
-        #
-        pass
-
+        try:
+            # Threat the socket as a file stream.
+            worker = self.conn.makefile(mode="rw")
+            # Read the request in a serialized form (JSON).
+            request = worker.readline()
+            # Process the request.
+            request = json.loads(request)
+            response = getattr(self.owner, request['method'])()
+            response = json.dumps({"result":response})
+            # Send the result.
+            worker.write(response + '\n')
+            worker.flush()
+        except Exception as e:
+            # Catch all errors in order to prevent the object from crashing
+            # due to bad connections coming from outside.
+            print("The connection to the caller has died:")
+            print("\t{}: {}".format(type(e), e))
+        finally:
+            self.conn.close()
 
 class Skeleton(threading.Thread):
 
@@ -90,16 +111,20 @@ class Skeleton(threading.Thread):
         self.address = address
         self.owner = owner
         self.daemon = True
-        #
-        # Your code here.
-        #
-        pass
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.bind(self.address)
+        self.s.listen(1)
 
+        
     def run(self):
-        #
-        # Your code here.
-        #
-        pass
+        
+        while True:
+            try:
+                conn, addr = self.s.accept()
+                req = Request(self.owner, conn, addr)
+                req.start()
+            except socket.error:
+                print("Errrrrorr")
 
 
 class Peer:

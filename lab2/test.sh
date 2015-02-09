@@ -19,7 +19,7 @@
 no_peers=${1:-4}
 term='xterm'
 wrap='../modules/Common/wrap.sh'
-peer='peer.py'
+peer='python3 peer.py'
 
 # Run peers.
 for ((i=1; i <= $no_peers ; i++)) ; do
