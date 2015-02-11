@@ -46,6 +46,9 @@ class Stub(object):
         self.address = tuple(address)
 
     def _rmi(self, method, *args):
+        print(method)
+        print(args)
+        print(self.address)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         request = json.dumps({"method":method,"args":args})
         request +="\n"
@@ -84,7 +87,7 @@ class Request(threading.Thread):
             request = worker.readline()
             # Process the request.
             request = json.loads(request)
-            response = getattr(self.owner, request['method'])()
+            response = getattr(self.owner, request['method'])(*request['args'])
             response = json.dumps({"result":response})
             # Send the result.
             worker.write(response + '\n')
