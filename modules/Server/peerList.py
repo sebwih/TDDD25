@@ -53,6 +53,8 @@ class PeerList(object):
             for pid in self.peers:
                 self.peers[pid].unregister_peer(self.owner.id)
 
+            print("peerList-destroy: Done!")
+
         finally:
             self.lock.release()
 
@@ -72,7 +74,7 @@ class PeerList(object):
         """Unregister a peer leaving the network."""
         # Synchronize access to the peer list as several peers might call
         # this method in parallel.
-
+        print("peerList-unregister_peer: Called!")
         self.lock.acquire()
         try:
             if pid in self.peers:

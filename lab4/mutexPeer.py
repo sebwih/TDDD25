@@ -94,6 +94,7 @@ class Client(orb.Peer):
         self.distributed_lock.register_peer(pid)
 
     def unregister_peer(self, pid):
+        print("mutexPeer-unregister_peer: Called!")
         self.peer_list.unregister_peer(pid)
         self.distributed_lock.unregister_peer(pid)
 
