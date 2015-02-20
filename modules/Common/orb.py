@@ -46,22 +46,22 @@ class Stub(object):
         self.address = tuple(address)
 
     def _rmi(self, method, *args):
-        print("====================")
-        print("Method: {}\nArgs:{}\nAddress:{}".format(method,args,self.address))
+        #print("====================")
+        #print("Method: {}\nArgs:{}\nAddress:{}".format(method,args,self.address))
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         request = json.dumps({"method":method,"args":args})
         request +="\n"
         s.connect(self.address)
         s.send(bytes(request, 'UTF-8'))
         if(method != "unregister"):
-            print("Innan receive")
+            #print("Innan receive")
             json_response = s.recv(1024).decode('UTF-8')
-            print(json_response)
-            print("Efter receive")
+            #print(json_response)
+            #print("Efter receive")
             response = json.loads(json_response)
             s.close()
             return response['result']  
-        s.close() 
+        s.close()
 
     def __getattr__(self, attr):
         """Forward call to name over the network at the given address."""
@@ -89,9 +89,9 @@ class Request(threading.Thread):
             request = worker.readline()
             # Process the request.
             request = json.loads(request)
-            print("Innan getattr - Request")
+            #print("Innan getattr - {}".format(request["method"]))
             response = getattr(self.owner, request['method'])(*request['args'])
-            print("Efter getattr - Request")
+            #print("Efter getattr - {}".format(request["method"]))
             response = json.dumps({"result":response})
             # Send the result.
             worker.write(response + '\n')

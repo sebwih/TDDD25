@@ -14,4 +14,4 @@ object_StudentId) so as to avoid conflicts.
 
 """
 
-object_type = "object_sebwi591"
+object_type = "object_test_test26"
