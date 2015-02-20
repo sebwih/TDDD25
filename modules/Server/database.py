@@ -33,7 +33,7 @@ class Database(object):
 
     def read(self):
         """Read a random location in the database."""
-        return self.db_array[self.rand.randint(0,len(self.db_array))]
+        return self.db_array[self.rand.randint(0,len(self.db_array)-1)]
         
 
     def write(self, fortune):

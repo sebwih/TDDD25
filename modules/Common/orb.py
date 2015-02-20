@@ -10,6 +10,7 @@
 import threading
 import socket
 import json
+import builtins
 
 """Object Request Broker
 
@@ -46,22 +47,25 @@ class Stub(object):
         self.address = tuple(address)
 
     def _rmi(self, method, *args):
-        #print("====================")
-        #print("Method: {}\nArgs:{}\nAddress:{}".format(method,args,self.address))
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        request = json.dumps({"method":method,"args":args})
-        request +="\n"
-        s.connect(self.address)
-        s.send(bytes(request, 'UTF-8'))
-        if(method != "unregister"):
-            #print("Innan receive")
-            json_response = s.recv(1024).decode('UTF-8')
-            #print(json_response)
-            #print("Efter receive")
+        print("====================")
+        print("Method: {}\nArgs:{}\nAddress:{}".format(method,args,self.address))
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            request = json.dumps({"method":method,"args":args})
+            request +="\n"
+            s.connect(self.address)
+            worker = s.makefile(mode="rw")
+            worker.write(request)
+            worker.flush()
+            json_response = worker.readline()
             response = json.loads(json_response)
+            if "error" in response:
+                raise getattr(builtins,response["error"]["name"])(response["error"]["args"])
+            return response["result"]  
+        except Exception as e:
+            print("{} has occured with argument: {}".format(e.__class__.__name__,e.args))
+        finally:
             s.close()
-            return response['result']  
-        s.close()
 
     def __getattr__(self, attr):
         """Forward call to name over the network at the given address."""
@@ -90,12 +94,16 @@ class Request(threading.Thread):
             # Process the request.
             request = json.loads(request)
             #print("Innan getattr - {}".format(request["method"]))
-            response = getattr(self.owner, request['method'])(*request['args'])
-            #print("Efter getattr - {}".format(request["method"]))
-            response = json.dumps({"result":response})
+            try:
+                response = getattr(self.owner, request['method'])(*request['args'])
+            except Exception as e:
+                response = {"error":{"name":e.__class__.__name__,"args":e.args}}
+            
+            response = json.dumps(response)
             # Send the result.
             worker.write(response + '\n')
             worker.flush()
+
         except Exception as e:
             # Catch all errors in order to prevent the object from crashing
             # due to bad connections coming from outside.

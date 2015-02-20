@@ -154,19 +154,15 @@ class DistributedLock(object):
         """Called when this object tries to acquire the lock."""
         print("Trying to acquire the lock...")
         self.peer_list.lock.acquire()
-        #try:
         if self.state == NO_TOKEN:
             self.time += 1
             for pid in self.peer_list.peers:
                 self.peer_list.peers[pid].request_token(self.time,self.owner.id)
-            #print("Before release")
+            
             self.peer_list.lock.release()
-            #print("After release")
-            b = True
+            
             while self.state == NO_TOKEN:
-                if b:
-                    print("Waiting")
-                    b = False
+                pass
         else:
             self.peer_list.lock.release()
 
@@ -191,7 +187,6 @@ class DistributedLock(object):
                         self.peer_list.peers[pid].obtain_token(self._prepare(self.token))
                         self.token = None
                         break
-
 
             if self.state == TOKEN_PRESENT:
                 for pid in self.peer_list.peers:

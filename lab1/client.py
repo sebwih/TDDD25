@@ -15,12 +15,14 @@ import sys
 import socket
 import json
 import argparse
-import customExceptions
+import builtins
 
 # -----------------------------------------------------------------------------
 # Initialize and read the command line arguments
 # -----------------------------------------------------------------------------
 
+class ComunicationError(Exception):
+    pass
 
 def address(path):
     addr = path.split(":")
@@ -66,15 +68,19 @@ class DatabaseProxy(object):
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect(server_address)
-            s.send(bytes(request, 'UTF-8'))
-            json_response = s.recv(1024).decode('UTF-8')
+            worker = s.makefile(mode="rw")
+            worker.write(request)
+            worker.flush()
+            json_response = worker.readline()
             response = json.loads(json_response)
+            if "error" in response:
+                print(response["error"]["name"])
+                raise getattr(builtins,response["error"]["name"])(response["error"]["args"])
             return response
         
         except Exception as e:
-            print(e.__class__.__name__)
-            return None
-
+            print("{} has occured with argument: {}".format(e.__class__.__name__,e.args))
+            
         finally:
             s.close()
 
@@ -90,14 +96,7 @@ class DatabaseProxy(object):
         request = json.dumps({'method':'write','args':[fortune]})
         request += "\n"
         response = self.send(request)
-        
-        if("error" in response):
-            try:
-                raise getattr(customExceptions,response["error"]["name"])
-
-            except Exception as e:
-                print(e.__class__.__name__)
-            
+                   
 
 
 # -----------------------------------------------------------------------------

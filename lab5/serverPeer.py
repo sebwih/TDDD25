@@ -112,9 +112,11 @@ class Server(orb.Peer):
     def read(self):
         """Read a fortune from the database."""
         self.drwlock.read_acquire()
-        fortune = self.db.read()
-        self.drwlock.read_release()
-        return fortune
+        try:
+            fortune = self.db.read()
+            return fortune
+        finally:
+            self.drwlock.read_release()
 
     def write(self, fortune):
         """Write a fortune to the database.
@@ -126,10 +128,12 @@ class Server(orb.Peer):
 
         """
         self.drwlock.write_acquire()
-        self.db.write(fortune)
-        for pid in self.peer_list.peers:
-            self.peer_list.peers[pid].write_no_lock(fortune)
-        self.drwlock.write_release()
+        try:
+            self.db.write(fortune)
+            for pid in self.peer_list.peers:
+                self.peer_list.peers[pid].write_no_lock(fortune)
+        finally:
+            self.drwlock.write_release()
 
     def write_no_lock(self, fortune):
         """Write a fortune to the database.

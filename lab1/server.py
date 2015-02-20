@@ -113,16 +113,17 @@ class Request(threading.Thread):
                         }
                     }
         """
-        req = json.loads(request)
-        if(req['method']=='read'):
-            response = {"result":self.db_server.read()}
-            return json.dumps(response)
-        elif(req['method'] == 'write'):
-            if not req["args"][0]:
-                return json.dumps({"error":{"name":"MissingArgumentError","args":[]}})
-            self.db_server.write(req['args'][0])
-            response = {"result": None}
-            return json.dumps(response)
+        try:
+            req = json.loads(request)
+            if(req['method']=='read'):
+                response = {"result":self.db_server.read()}
+                return json.dumps(response)
+            elif(req['method'] == 'write'):
+                self.db_server.write(req['args'][0])
+                response = {"result": None}
+                return json.dumps(response)
+        except Exception as e:
+            return json.dumps({"error":{"name":e.__class__.__name__,"args":e.args}})
 
     def run(self):
         try:
