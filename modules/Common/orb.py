@@ -47,8 +47,8 @@ class Stub(object):
         self.address = tuple(address)
 
     def _rmi(self, method, *args):
-        print("====================")
-        print("Method: {}\nArgs:{}\nAddress:{}".format(method,args,self.address))
+        #print("====================")
+        #print("Method: {}\nArgs:{}\nAddress:{}".format(method,args,self.address))
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             request = json.dumps({"method":method,"args":args})
@@ -60,7 +60,7 @@ class Stub(object):
             json_response = worker.readline()
             response = json.loads(json_response)
             if "error" in response:
-                raise getattr(builtins,response["error"]["name"])(response["error"]["args"])
+                raise getattr(builtins,response["error"]["name"])(*response["error"]["args"])
             return response["result"]  
         except Exception as e:
             print("{} has occured with argument: {}".format(e.__class__.__name__,e.args))
@@ -96,10 +96,11 @@ class Request(threading.Thread):
             #print("Innan getattr - {}".format(request["method"]))
             try:
                 response = getattr(self.owner, request['method'])(*request['args'])
+                response = {"result":response}
             except Exception as e:
                 response = {"error":{"name":e.__class__.__name__,"args":e.args}}
             
-            response = json.dumps(response)
+            response = json.dumps(response) 
             # Send the result.
             worker.write(response + '\n')
             worker.flush()
