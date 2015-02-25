@@ -88,7 +88,9 @@ class DistributedLock(object):
         """
         self.peer_list.lock.acquire()
         try:
-            if len(self.peer_list.peers)==0:
+            sorted_pid = list(sorted(self.peer_list.peers.keys()))
+
+            if len(sorted_pid) == 0 or (sorted_pid[0] >= self.owner.id):
                 self.state = TOKEN_PRESENT
                 self.token = {}
                 self.token[self.owner.id] = 0
@@ -114,8 +116,10 @@ class DistributedLock(object):
         try:
 
             if (self.state == TOKEN_HELD or self.state == TOKEN_PRESENT) and len(self.peer_list.peers) > 0:
-                pid = list(self.peer_list.peers.keys())[0]
-                self.peer_list.peers[pid].obtain_token(self._prepare(self.token))
+                self.release()
+                if self.state != NO_TOKEN:
+                    pid = list(self.peer_list.peers.keys())[0]
+                    self.peer_list.peers[pid].obtain_token(self._prepare(self.token))
 
         finally:
 
@@ -156,10 +160,9 @@ class DistributedLock(object):
         self.peer_list.lock.acquire()
         if self.state == NO_TOKEN:
             self.time += 1
+            self.peer_list.lock.release()
             for pid in self.peer_list.peers:
                 self.peer_list.peers[pid].request_token(self.time,self.owner.id)
-            
-            self.peer_list.lock.release()
             
             while self.state == NO_TOKEN:
                 pass
@@ -221,13 +224,13 @@ class DistributedLock(object):
         print("Receiving the token...")
         #while not self.peer_list.lock.acquire(False):
         #    print("Failed to lock")
-        #self.peer_list.lock.acquire()
-        #try:
-        self.token = self._unprepare(token)
-        self.state = 1
+        self.peer_list.lock.acquire()
+        try:
+            self.token = self._unprepare(token)
+            self.state = 1
         #print("obtain_token: Done!")
-        #finally:
-        #    self.peer_list.lock.release()
+        finally:
+            self.peer_list.lock.release()
 
     def display_status(self):
         """Print the status of this peer."""

@@ -75,7 +75,7 @@ class DatabaseProxy(object):
             response = json.loads(json_response)
             if "error" in response:
                 print(response["error"]["name"])
-                raise getattr(builtins,response["error"]["name"])(response["error"]["args"])
+                raise getattr(builtins,response["error"]["name"])(*response["error"]["args"])
             return response
         
         except Exception as e:
